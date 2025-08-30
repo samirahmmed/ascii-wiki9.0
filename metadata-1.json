@@ -1,0 +1,6 @@
+{
+  "name": "ASCII Wiki",
+  "description": "Explore an infinite wiki where every word is a hyperlink. Discover definitions with unique ASCII art, powered by Gemini.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}

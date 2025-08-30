@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ASCII Wiki</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kosugi&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --background-color: #ffffff;
+        --text-color: #000000;
+        --primary-color: #0000ff;
+        --secondary-text-color: #888;
+        --skeleton-bg-color: #e0e0e0;
+        --button-disabled-color: #ccc;
+        --footer-bg-color: #ffffff;
+        --copy-button-bg: #f0f0f0;
+        --copy-button-text: #000000;
+        --copy-button-hover-bg: #e0e0e0;
+      }
+
+      [data-theme='dark'] {
+        --background-color: #121212;
+        --text-color: #e0e0e0;
+        --primary-color: #88aaff;
+        --secondary-text-color: #888;
+        --skeleton-bg-color: #333;
+        --button-disabled-color: #555;
+        --footer-bg-color: #121212;
+        --copy-button-bg: #2a2a2a;
+        --copy-button-text: #e0e0e0;
+        --copy-button-hover-bg: #3a3a3a;
+      }
+      
+      @keyframes blink {
+        from, to { opacity: 1 }
+        50% { opacity: 0; }
+      }
+
+      body {
+        background-color: var(--background-color);
+        color: var(--text-color);
+        font-family: 'Kosugi', sans-serif;
+        font-size: 1.1rem; /* Set base font size for the entire app */
+        line-height: 1.6; /* Set base line height for readability */
+        margin: 0;
+        padding: 2rem 2rem 5rem 2rem; /* Increased bottom padding for sticky footer */
+        transition: background-color 0.3s, color 0.3s;
+      }
+      #root {
+        max-width: 65ch; /* Optimal line length for readability */
+        margin: auto;
+      }
+      /* Reset headers to have the same font size as the body */
+      h1, h2, h3, h4, h5, h6 {
+        font-size: 1em; /* 1em equals the parent font-size, which is 1.1rem from body */
+        margin: 0;
+        font-weight: normal; /* Ensure no bolding by default */
+      }
+      /* Reset button for link-like behavior */
+      button {
+        background: none;
+        border: none;
+        padding: 0;
+        font: inherit;
+        color: inherit;
+        cursor: pointer;
+      }
+      .interactive-word {
+        color: var(--text-color);
+        text-decoration: none;
+        transition: color 0.2s ease-in-out;
+      }
+      .interactive-word:hover {
+        color: var(--primary-color);
+        text-decoration: underline;
+      }
+      .footer-text {
+        font-size: 0.9em;
+        color: var(--secondary-text-color);
+      }
+      .footer-text a {
+        color: inherit;
+        text-decoration: none;
+        transition: color 0.2s ease-in-out;
+      }
+      .footer-text a:hover {
+        color: var(--primary-color);
+        text-decoration: underline;
+      }
+      .ascii-art-container {
+        position: relative;
+        margin: 2rem 0; /* Increased margin for more breathing room */
+      }
+      .ascii-art {
+        font-family: monospace;
+        text-align: left; /* Aligned to the left for better block letter rendering */
+        white-space: pre;
+        color: var(--secondary-text-color);
+        margin: 0; /* Margin moved to container */
+        line-height: 1.1; /* Tighter line height for better art rendering */
+        font-size: 0.8em; /* Slightly smaller font for more detailed art */
+      }
+      .copy-art-button {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        background-color: var(--copy-button-bg);
+        color: var(--copy-button-text);
+        border: 1px solid var(--skeleton-bg-color);
+        padding: 0.25rem 0.75rem;
+        font-size: 0.8rem;
+        font-family: 'Kosugi', sans-serif;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        z-index: 10;
+      }
+      .copy-art-button:hover {
+        background-color: var(--copy-button-hover-bg);
+      }
+      .blinking-cursor {
+        animation: blink 1s step-end infinite;
+      }
+      
+      /* Search Bar Styles */
+      .search-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 3rem;
+      }
+
+      .top-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        padding: 0 0.5rem;
+        box-sizing: border-box;
+      }
+
+      .language-selector {
+        background-color: transparent;
+        color: var(--text-color);
+        border: none;
+        padding: 0.5rem 0.2rem;
+        font: inherit;
+        cursor: pointer;
+        outline: none;
+        border-radius: 0;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+      }
+
+      .language-selector:disabled {
+        color: var(--button-disabled-color);
+        cursor: not-allowed;
+      }
+
+      .search-form {
+        width: 100%;
+        max-width: 500px;
+      }
+
+      .search-input {
+        width: 100%;
+        padding: 0.75rem 1.5rem;
+        font: inherit;
+        font-size: 1.1rem;
+        color: inherit;
+        border: 1px solid var(--secondary-text-color);
+        border-radius: 50px;
+        background-color: transparent;
+        box-sizing: border-box;
+        outline: none;
+        transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        text-align: center;
+      }
+
+      .search-input::placeholder {
+        color: var(--secondary-text-color);
+        opacity: 1;
+        text-align: center;
+      }
+
+      .search-input:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 20%, transparent);
+      }
+
+      .search-input:disabled {
+        color: var(--button-disabled-color);
+        background-color: var(--skeleton-bg-color);
+      }
+
+      .random-button {
+        background: none;
+        border: none;
+        padding: 0;
+        font: inherit;
+        color: var(--secondary-text-color);
+        cursor: pointer;
+        transition: color 0.2s;
+        text-decoration: underline;
+      }
+
+      .random-button:hover:not(:disabled) {
+        color: var(--primary-color);
+      }
+
+      .random-button:disabled {
+        color: var(--button-disabled-color);
+        cursor: not-allowed;
+        text-decoration: none;
+      }
+
+      .theme-toggle-button, .api-key-button {
+        background: none;
+        border: none;
+        font-size: 1.5rem; /* Make icon larger */
+        cursor: pointer;
+        color: var(--text-color);
+        padding: 0;
+        line-height: 1;
+        transition: opacity 0.2s;
+      }
+
+      .theme-toggle-button:hover, .api-key-button:hover {
+        opacity: 0.7;
+      }
+
+      .top-right-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .sticky-footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        text-align: center;
+        padding: 1.5rem 0;
+        background-color: var(--footer-bg-color);
+        transition: background-color 0.3s;
+      }
+
+      /* Loading Skeleton Bar */
+      .skeleton-bar {
+        height: 1rem;
+        background-color: var(--skeleton-bg-color);
+        margin-bottom: 0.75rem;
+      }
+
+      /* Copy Button */
+      .copy-button-container {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 1rem;
+      }
+      .copy-button {
+        background-color: var(--copy-button-bg);
+        color: var(--copy-button-text);
+        border: 1px solid var(--skeleton-bg-color);
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+      .copy-button:hover {
+        background-color: var(--copy-button-hover-bg);
+      }
+
+      /* API Key Modal Styles */
+      .api-key-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        padding: 1rem;
+        box-sizing: border-box;
+      }
+      .api-key-modal {
+        background-color: var(--background-color);
+        color: var(--text-color);
+        padding: 2rem;
+        border-radius: 8px;
+        max-width: 500px;
+        width: 100%;
+        text-align: center;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      }
+      .api-key-modal h2 {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-top: 0;
+        margin-bottom: 1rem;
+      }
+      .api-key-modal p {
+        margin-bottom: 1.5rem;
+        line-height: 1.5;
+      }
+      .api-key-modal form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+      .api-key-modal input {
+        width: 100%;
+        padding: 0.75rem;
+        font: inherit;
+        color: var(--text-color);
+        border: 1px solid var(--secondary-text-color);
+        border-radius: 4px;
+        background-color: var(--background-color);
+        box-sizing: border-box;
+      }
+      .api-key-modal .modal-button {
+        background-color: var(--primary-color);
+        border: none;
+        color: var(--background-color);
+        padding: 0.75rem 1rem;
+        border-radius: 4px;
+        font: inherit;
+        font-weight: bold;
+        cursor: pointer;
+        transition: opacity 0.2s;
+      }
+      .api-key-modal .modal-button:hover {
+        opacity: 0.9;
+      }
+      .api-key-modal a {
+        color: var(--primary-color);
+      }
+
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.1.0/",
+    "react": "https://esm.sh/react@^19.1.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.0/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.7.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./index.tsx"></script>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
